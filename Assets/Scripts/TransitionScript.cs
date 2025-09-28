@@ -1,43 +1,65 @@
-using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
+
+public enum FadeState
+{
+	IN,
+	OUT,
+	IDLE
+}
 
 public class TransitionScript : MonoBehaviour
 {
-	// Start is called once before the first execution of Update after the MonoBehaviour is created
+
 	[SerializeField]
-	UnityEngine.UI.Image image;
+	MeshRenderer sphere;
+	private FadeState fadeState = FadeState.IDLE;
+	private float t = 0f;
+
 
 	private void Awake()
 	{
-		if (image == null)
-            image = GetComponent<UnityEngine.UI.Image>();
-
         // Make the image black and fully transparent
-        image.color = Color.black;
-
-        // Force CanvasRenderer alpha to 0 so CrossFadeAlpha works
-        image.canvasRenderer.SetAlpha(0f);
+        sphere.material.color = Color.black;
+		Color c = sphere.material.color;
+		c.a = 0f;
+		sphere.material.color = c;
 	}
 
-	void Start()
-	{
-		//StartCoroutine(FadeOut());
-	}
+
+    private void Update()
+    {
+        switch (fadeState)
+		{
+			case FadeState.OUT:
+				t += Time.deltaTime;
+				Color c = sphere.material.color;
+				c.a = Mathf.Lerp(0, 1, t * 2);
+				sphere.material.color = c;
+				break;
+			case FadeState.IN:
+				t += Time.deltaTime;
+				Color d = sphere.material.color;
+				d.a = Mathf.Lerp(1, 0, t * 2);
+				sphere.material.color = d;
+				break;
+			default:
+				break;
+		}
+		if (t >= .5f) fadeState = FadeState.IDLE;
+    }
 
 	public IEnumerator FadeIn()
 	{
-		image.CrossFadeAlpha(0f, 0.5f, false);
-		Debug.Log("faded in");
-		yield return new WaitForSeconds(1);
+		fadeState = FadeState.IN;
+		t = 0f;
+		yield return new WaitForSeconds(.5f);
 	}
 
 	public IEnumerator FadeOut()
 	{
-		image.CrossFadeAlpha(1f, 0.5f, false);
-		Debug.Log("faded out");
-		yield return new WaitForSeconds(1);
+		fadeState = FadeState.OUT;
+		t = 0f;
+		yield return new WaitForSeconds(.5f);
 	}
 }
