@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEngine.Video;
 
 public class VideoTeleporter : MonoBehaviour
@@ -12,7 +14,10 @@ public class VideoTeleporter : MonoBehaviour
     private VideoPlayer videoPlayer;
     private bool playing = false;
 
-    private GameObject player;
+    [SerializeField]
+	private TransitionScript transition;
+
+	private GameObject player;
 
 
     private void Start()
@@ -32,8 +37,7 @@ public class VideoTeleporter : MonoBehaviour
         {
             playing = false;
             // transition
-
-            player.transform.SetPositionAndRotation(returnTransform.position, returnTransform.rotation);
+            StartCoroutine(ReturnPlayer());
         }
     }
 
@@ -45,11 +49,27 @@ public class VideoTeleporter : MonoBehaviour
 
         player = other.gameObject;
         // transition
+        StartCoroutine(TeleportPlayer());
+    }
+
+    private IEnumerator TeleportPlayer()
+    {
+        yield return transition.FadeOut();
 
         player.transform.SetPositionAndRotation(videoTransform.position, videoTransform.rotation);
 
+        yield return transition.FadeIn();
+
         playing = true;
         videoPlayer.Play();
+    }
 
+    private IEnumerator ReturnPlayer()
+    {
+        yield return transition.FadeOut();
+
+        player.transform.SetPositionAndRotation(returnTransform.position, returnTransform.rotation);
+
+        yield return transition.FadeIn();
     }
 }
